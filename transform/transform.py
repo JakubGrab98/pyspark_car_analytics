@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
+# TODO: check posting_date column and get ridd of dirty dates
 
 class CarsTransformation:
 
@@ -42,6 +43,7 @@ class CarsTransformation:
                 (col("model").isNotNull())
                 & (col("manufacturer").isNotNull())
                 & (col("price") > 0)
+                & (col("posting_date").rlike(r"^2\d{3}-\d{2}-\d{2}"))
             )
             .select(self.COLUMNS_LIST)
         )
