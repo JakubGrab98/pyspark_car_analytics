@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
-
+from pyspark.sql.functions import *
 
 class CarsAnalytics:
 
@@ -7,6 +7,7 @@ class CarsAnalytics:
 
     def __init__(self, spark_session: SparkSession):
         self.spark_session = spark_session
+        self.base_df = self.load_transformed_data()
 
     def load_transformed_data(self) -> DataFrame:
         df = (
@@ -15,3 +16,13 @@ class CarsAnalytics:
         )
         return df
 
+    def avg_manufacturer_price_by_year(self, manufacturer: str) -> DataFrame:
+        df_copy = self.base_df.select("posting_year", "manufacturer", "price")
+        avg_price_df = (
+            df_copy
+            .filter(col("manufacturer").contains(manufacturer))
+            .groupby("posting_year", "manufacturer")
+            .avg("price")
+            .orderBy("posting_year")
+        )
+        return avg_price_df
