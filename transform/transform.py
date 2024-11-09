@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-# TODO: check posting_date column and get ridd of dirty dates
 
 class CarsTransformation:
 
