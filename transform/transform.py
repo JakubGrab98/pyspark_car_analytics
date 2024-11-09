@@ -14,6 +14,8 @@ class CarsTransformation:
         "posting_year", "posting_month",
     ]
 
+    PARTITION_COLUMNS = ["posting_year", "posting_month"]
+
     def __init__(self, spark_session: SparkSession):
         self.spark_session = spark_session
 
@@ -44,3 +46,6 @@ class CarsTransformation:
             .select(self.COLUMNS_LIST)
         )
         return clean_df
+
+    def save_data_to_parquet(self, df: DataFrame, destination_path: str):
+        df.write.partitionBy(self.PARTITION_COLUMNS).mode("overwrite").parquet(destination_path)
