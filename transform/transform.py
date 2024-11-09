@@ -11,6 +11,7 @@ class CarsTransformation:
         "fuel", "odometer", "transmission", "VIN",
         "drive", "size", "type", "paint_color",
         "description", "state", "lat", "long", "posting_date",
+        "posting_year", "posting_month",
     ]
 
     def __init__(self, spark_session: SparkSession):
