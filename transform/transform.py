@@ -10,7 +10,7 @@ class CarsTransformation:
         "year", "manufacturer", "model", "condition",
         "fuel", "odometer", "transmission", "VIN",
         "drive", "size", "type", "paint_color",
-        "descritpion", "state", "lat", "long", "posting_date",
+        "description", "state", "lat", "long", "posting_date",
     ]
 
     def __init__(self, spark_session: SparkSession):
@@ -31,11 +31,14 @@ class CarsTransformation:
             .withColumn("odometer", col("odometer").cast(LongType()))
             .withColumn("lat", col("lat").cast(FloatType()))
             .withColumn("long", col("long").cast(FloatType()))
+            .withColumn("posting_date", substring(col("posting_date"), 1, 10).cast(DateType()))
+            .withColumn("posting_year", year(col("posting_date")))
+            .withColumn("posting_month", month(col("posting_date")))
             .withColumn("currency", lit("USD"))
             .filter(
-                col("model").isNotNull()
-                & col("manufacturer").isNotNull()
-                & col("price") > 0
+                (col("model").isNotNull())
+                & (col("manufacturer").isNotNull())
+                & (col("price") > 0)
             )
             .select(self.COLUMNS_LIST)
         )
