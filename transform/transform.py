@@ -31,6 +31,7 @@ class CarsTransformation:
             .withColumn("odometer", col("odometer").cast(LongType()))
             .withColumn("lat", col("lat").cast(FloatType()))
             .withColumn("long", col("long").cast(FloatType()))
+            .withColumn("currency", lit("USD"))
             .filter(
                 col("model").isNotNull()
                 & col("manufacturer").isNotNull()
