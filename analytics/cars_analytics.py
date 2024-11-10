@@ -26,3 +26,11 @@ class CarsAnalytics:
             .orderBy("posting_year")
         )
         return avg_price_df
+
+    def count_advertises_by_year(self) -> DataFrame:
+        df = self.base_df.select("posting_year")
+        count_df = (
+            df.groupby("posting_year")
+            .count()
+        )
+        return count_df
