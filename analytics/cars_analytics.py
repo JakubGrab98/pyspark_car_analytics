@@ -57,3 +57,29 @@ class CarsAnalytics:
             )
         )
         return statistics_df
+
+    def filter_advertises(
+            self, manufacturer: str, model: str, max_price: int, min_price: int
+    ) -> DataFrame:
+        """Retrieves car's model advertises based on user parameters.
+        Args: manufacturer (str): Name of the car's manufacturer.
+            model (str): Name of the car's model.
+            max_price (int): Maximum price of the searched model.
+            min_price (int): Minimum price of the searched model.
+
+        Returns: DataFrame: Returns dataframe with car's advertises details.
+        """
+        base_df = self.base_df.select(
+            "url", "region", "year", "manufacturer",
+            "model", "condition", "fuel", "odometer",
+            "VIN", "posting_date", "price",
+        )
+        final_df = (
+            base_df.filter(
+                (col("manufacturer") == manufacturer)
+                & (col("model") == model)
+                & (col("price") <= max_price)
+                & (col("price") >= min_price)
+            )
+        )
+        return final_df
