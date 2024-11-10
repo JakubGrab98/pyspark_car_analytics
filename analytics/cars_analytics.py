@@ -36,8 +36,14 @@ class CarsAnalytics:
         return count_df
 
     def get_model_statistics(self, manufacturer: str, model: str) -> DataFrame:
+        """Retrieves car's model statistics
+        Args: manufacturer (str): Name of the car's manufacturer.
+            model (str): Name of the car's model.
+
+        Returns: DataFrame: Returns dataframe with basic statistics.
+        """
         df = self.base_df.select("manufacturer", "model", "year", "price")
-        max_price_df = (
+        statistics_df = (
             df.filter(
                 (col("manufacturer") == manufacturer) & (col("model") == model)
             )
@@ -50,4 +56,4 @@ class CarsAnalytics:
                 min("price").alias("min_price"),
             )
         )
-        return max_price_df
+        return statistics_df
