@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from rates.nbp_rates import Rates
 
 
 class CarsTransformation:
@@ -47,6 +48,21 @@ class CarsTransformation:
             .select(self.COLUMNS_LIST)
         )
         return clean_df
+
+    def get_price_in_pln(self, cars_df: DataFrame, rates_df: DataFrame) -> DataFrame:
+        """Assign PLN rate and create column with price in PLN.
+        Args: manufacturer (str): Name of the car's manufacturer.
+            cars_df (DataFrame): DataFrame with cars data.
+            rates_df (DataFrame): DataFrame with rates.
+
+        Returns: DataFrame: Returns dataframe with additional column price in PLN.
+        """
+        df_with_rates = (
+                cars_df.join(rates_df, cars_df.currency == rates_df.code, "left_outer")
+                .withColumn("price_PLN", col("mid") * col("price"))
+                .select(self.COLUMNS_LIST, "mid", "price_PLN")
+        )
+        return df_with_rates
 
     def save_data_to_parquet(self, df: DataFrame, destination_path: str):
         df.write.partitionBy(self.PARTITION_COLUMNS).mode("overwrite").parquet(destination_path)
