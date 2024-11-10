@@ -1,7 +1,7 @@
+"""Module responsible for raw data transformation."""
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-from rates.nbp_rates import Rates
 
 
 class CarsTransformation:
@@ -21,6 +21,11 @@ class CarsTransformation:
         self.spark_session = spark_session
 
     def load_data(self, csv_file: str):
+        """Loads data from csv file.
+        Args: csv_file (str): Path to the csv file with car's data.
+
+        Returns: DataFrame: Returns dataframe with raw car's data.
+        """
         df = (
             self.spark_session.read
             .option("header", "true")
@@ -29,6 +34,11 @@ class CarsTransformation:
         return df
 
     def clean_data(self, df: DataFrame) -> DataFrame:
+        """Initial transformation and cleaning raw data.
+        Args: df (DataFrame): DataFrame with car's data.
+
+        Returns: DataFrame: Transformed DataFrame.
+        """
         clean_df = (
             df
             .withColumn("price", col("price").cast(IntegerType()))
@@ -65,4 +75,9 @@ class CarsTransformation:
         return df_with_rates
 
     def save_data_to_parquet(self, df: DataFrame, destination_path: str):
+        """Saves data to parquet files.
+
+        Args: df (str): DataFrame with data to be saved.
+            destination_path (DataFrame): Path to destination directory.
+        """
         df.write.partitionBy(self.PARTITION_COLUMNS).mode("overwrite").parquet(destination_path)
