@@ -7,7 +7,7 @@ from rates.nbp_rates import Rates
 class CarsTransformation:
 
     COLUMNS_LIST = [
-        "id", "url", "region", "region_url", "price", "currency",
+        "id", "url", "region", "region_url", "price", "price_currency",
         "year", "manufacturer", "model", "condition",
         "fuel", "odometer", "transmission", "VIN",
         "drive", "size", "type", "paint_color",
@@ -38,7 +38,7 @@ class CarsTransformation:
             .withColumn("posting_date", substring(col("posting_date"), 1, 10).cast(DateType()))
             .withColumn("posting_year", year(col("posting_date")))
             .withColumn("posting_month", month(col("posting_date")))
-            .withColumn("currency", lit("USD"))
+            .withColumn("price_currency", lit("USD"))
             .filter(
                 (col("model").isNotNull())
                 & (col("manufacturer").isNotNull())
@@ -58,7 +58,7 @@ class CarsTransformation:
         Returns: DataFrame: Returns dataframe with additional column price in PLN.
         """
         df_with_rates = (
-                cars_df.join(rates_df, [cars_df.currency == rates_df.code], "left_outer")
+                cars_df.join(rates_df, [cars_df.price_currency == rates_df.code], "left_outer")
                 .withColumn("price_PLN", col("mid") * col("price"))
                 .select(*self.COLUMNS_LIST, "mid", "price_PLN")
         )
