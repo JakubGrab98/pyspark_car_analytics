@@ -8,19 +8,16 @@ class Rates:
         self.base_url = base_url
         self.spark_session = spark_session
 
-    def get_rates_json(self, table: str, currency: str) -> DataFrame | None:
+    def get_rates(self, table: str) -> DataFrame | None:
         """Retrieves dataframe with rates in Polish currency.
         Args: table (str): NBP table type.
-            currency (str): Currency 3-digit code.
 
-        Returns: DataFrame: Returns dataframe with daily currency rates.
+        Returns: DataFrame: Returns dataframe with effective currency rates.
         """
-        params = {
-            "table": table,
-            "currency": currency.lower(),
-        }
-        response = requests.get(self.base_url, params=params)
+        url = f"{self.base_url}/{table}/"
+        response = requests.get(url)
         if response.status_code == 200:
             response_json = response.json()
-            rates_df = self.spark_session.read.json(response_json)
+            rates = response_json[0]["rates"]
+            rates_df = self.spark_session.createDataFrame(rates)
             return rates_df
