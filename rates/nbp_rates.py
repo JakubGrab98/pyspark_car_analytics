@@ -5,6 +5,10 @@ import requests
 
 class Rates:
     def __init__(self, base_url: str, spark_session: SparkSession):
+        """Initializes rates class.
+        Args: base_url (str): NPB base url API.
+            spark_session (SparkSession)
+        """
         self.base_url = base_url
         self.spark_session = spark_session
 
