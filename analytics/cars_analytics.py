@@ -1,5 +1,7 @@
+"""Module responsible for analyzing car dataset."""
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import *
+
 
 class CarsAnalytics:
 
@@ -10,6 +12,7 @@ class CarsAnalytics:
         self.base_df = self.load_transformed_data()
 
     def load_transformed_data(self) -> DataFrame:
+        """Loaded transformed data from parquet files"""
         df = (
             self.spark_session.read
             .parquet(self.TRANSFORMED_DATA)
@@ -17,6 +20,11 @@ class CarsAnalytics:
         return df
 
     def avg_manufacturer_price_by_year(self, manufacturer: str) -> DataFrame:
+        """Retrieves average price of the manufacturer by advertises posting date.
+        Args: manufacturer (str): Name of the car's manufacturer.
+
+        Returns: DataFrame: Returns dataframe with average manufacturer price by year.
+        """
         df_copy = self.base_df.select("posting_year", "manufacturer", "price")
         avg_price_df = (
             df_copy
@@ -28,6 +36,10 @@ class CarsAnalytics:
         return avg_price_df
 
     def count_advertises_by_year(self) -> DataFrame:
+        """Calculates number of the posted advertises by posting year.
+
+        Returns: DataFrame: Returns dataframe with advertises count by year.
+        """
         df = self.base_df.select("posting_year")
         count_df = (
             df.groupby("posting_year")
