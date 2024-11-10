@@ -25,12 +25,12 @@ class CarsAnalytics:
 
         Returns: DataFrame: Returns dataframe with average manufacturer price by year.
         """
-        df_copy = self.base_df.select("posting_year", "manufacturer", "price")
+        df_copy = self.base_df.select("posting_year", "manufacturer", "price_PLN")
         avg_price_df = (
             df_copy
             .filter(col("manufacturer").contains(manufacturer))
             .groupby("posting_year", "manufacturer")
-            .avg("price")
+            .avg("price_PLN")
             .orderBy("posting_year")
         )
         return avg_price_df
@@ -54,7 +54,7 @@ class CarsAnalytics:
 
         Returns: DataFrame: Returns dataframe with basic statistics.
         """
-        df = self.base_df.select("manufacturer", "model", "year", "price")
+        df = self.base_df.select("manufacturer", "model", "year", "price_PLN")
         statistics_df = (
             df.filter(
                 (col("manufacturer") == manufacturer) & (col("model") == model)
@@ -63,9 +63,9 @@ class CarsAnalytics:
             .agg(
                 max("year").alias("max_prod_year"),
                 min("year").alias("min_prod_year"),
-                avg("price").alias("avg_price"),
-                max("price").alias("max_price"),
-                min("price").alias("min_price"),
+                avg("price_PLN").alias("avg_price"),
+                max("price_PLN").alias("max_price"),
+                min("price_PLN").alias("min_price"),
             )
         )
         return statistics_df
@@ -84,14 +84,14 @@ class CarsAnalytics:
         base_df = self.base_df.select(
             "url", "region", "year", "manufacturer",
             "model", "condition", "fuel", "odometer",
-            "VIN", "posting_date", "price",
+            "VIN", "posting_date", "price_PLN",
         )
         final_df = (
             base_df.filter(
                 (col("manufacturer") == manufacturer)
                 & (col("model") == model)
-                & (col("price") <= max_price)
-                & (col("price") >= min_price)
+                & (col("price_PLN") <= max_price)
+                & (col("price_PLN") >= min_price)
             )
         )
         return final_df
