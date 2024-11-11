@@ -1,7 +1,10 @@
 import logging
+import re
 import asyncio
+from datetime import datetime
 import httpx
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 
 logger = logging.getLogger(__name__)
@@ -58,3 +61,75 @@ class AdvertisementScraper:
             tasks.append(task)
 
         await asyncio.gather(*tasks)
+
+    async def fetch_ad_data(self, semaphore: asyncio.Semaphore, browser, ad_url: str) -> None:
+        """Fetches car's data from advertise.
+        Args: semaphore (asyncio.Semaphore): Limit the number of operations.
+            browser: playwright browser instance.
+            ad_url (str): Advertise url.
+        """
+        async with semaphore:
+            page = await browser.new_page()
+            try:
+                logger.info(f"Processing URL: {ad_url}")
+                await page.goto(ad_url)
+                try:
+                    await page.click("button#onetrust-accept-btn-handler")
+                    await page.click("button#content-technical-specs-section__toggle")
+                    await page.click("button#content-condition-history-section__toggle")
+                except PlaywrightTimeoutError as e:
+                    logger.warning(f"Timeout clicking buttons on {ad_url}: {e}")
+                finally:
+                    content = await page.content()
+                    car_data = {}
+                    soup = BeautifulSoup(content, 'html.parser')
+                    for key, class_name in self.GENERAL_DATA_DICT.items():
+                        try:
+                            car_data[key] = soup.find(class_=re.compile(rf"{class_name}*")).text
+                        except Exception as e:
+                            logger.error(f"Element {class_name} not founded {e}")
+                            car_data[key] = None
+
+                    for key, element_name in self.DETAILS_DICT.items():
+                        try:
+                            car_data[key] = soup.find(
+                                "div", attrs={"data-testid": element_name}
+                            ).find_all("p")[1].text
+
+                        except Exception as e:
+                            logger.error(f"Element {element_name} not founded {e}")
+
+                    car_data["url"] = ad_url
+                    car_data["extract_date"] = datetime.today().strftime("%Y-%m-%d")
+
+                    self.advertises_data.append(car_data)
+            except PlaywrightTimeoutError as e:
+                logger.error(f"Timeout error while processing {ad_url}: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error processing {ad_url}: {e}")
+            finally:
+                await page.close()
+
+    async def process_batch(self, playwright, batch, max_concurrent_tabs: int) -> None:
+        """Processes fetchin car's data for batch of advertises urls"""
+        browser = await playwright.chromium.launch(headless=False)
+        semaphore = asyncio.Semaphore(max_concurrent_tabs)
+        tasks = [
+            self.fetch_ad_data(semaphore , browser, ad_url) for ad_url in batch
+        ]
+        await asyncio.gather(*tasks)
+        await browser.close()
+
+    async def scraper(self):
+        """Combines all necessary methods to perform data scraping process"""
+        await self.fetch_advertises_url()
+        batch_size = 500
+        concurrent_tabs = 10
+        ad_urls = list(set(self.advertises_url))
+        batches = [ad_urls[i:i + batch_size] for i in range(0, len(ad_urls), batch_size)]
+
+        async with async_playwright() as playwright:
+            for index, batch in enumerate(batches, start=1):
+                logger.info(f"Processing batch {index}/{len(batches)} with {len(batch)} URLs")
+                await self.process_batch(playwright, batch, concurrent_tabs)
+                logger.info(f"Finished processing batch {index}/{len(batches)}")
