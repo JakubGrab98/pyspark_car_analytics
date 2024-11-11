@@ -1,6 +1,7 @@
 import logging
 import re
 import asyncio
+import csv
 from datetime import datetime
 import httpx
 from bs4 import BeautifulSoup
@@ -133,3 +134,11 @@ class AdvertisementScraper:
                 logger.info(f"Processing batch {index}/{len(batches)} with {len(batch)} URLs")
                 await self.process_batch(playwright, batch, concurrent_tabs)
                 logger.info(f"Finished processing batch {index}/{len(batches)}")
+
+    def save_data_to_csv(self, file_name:str = "raw_data/cars_data.csv"):
+        fields = list(self.GENERAL_DATA_DICT.keys()) + list(self.DETAILS_DICT.keys())
+        fields.extend(["url", "extract_date"])
+        with open(file_name, mode="w", newline="", encoding="utf-8") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(self.advertises_data)
