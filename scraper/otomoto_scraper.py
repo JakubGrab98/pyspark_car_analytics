@@ -135,7 +135,11 @@ class AdvertisementScraper:
                 await self.process_batch(playwright, batch, concurrent_tabs)
                 logger.info(f"Finished processing batch {index}/{len(batches)}")
 
-    def save_data_to_csv(self, file_name:str = "raw_data/cars_data.csv"):
+    def save_data_to_csv(self, file_name:str = "data/raw/otomoto_data.csv"):
+        """Saves scraped data to csv file.
+        Args: file_name (str): Path to destination csv file.
+            Default path = data/raw/otomoto_data.csv
+        """
         fields = list(self.GENERAL_DATA_DICT.keys()) + list(self.DETAILS_DICT.keys())
         fields.extend(["url", "extract_date"])
         with open(file_name, mode="w", newline="", encoding="utf-8") as csv_file:
