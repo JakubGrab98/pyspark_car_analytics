@@ -57,7 +57,7 @@ class CarsAnalytics:
         df = self.base_df.select("manufacturer", "model", "year", "price_PLN")
         statistics_df = (
             df.filter(
-                (col("manufacturer") == manufacturer) & (col("model") == model)
+                (col("manufacturer") == manufacturer) & (col("model").contains(model))
             )
             .groupby("manufacturer", "model")
             .agg(

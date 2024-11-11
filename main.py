@@ -15,7 +15,6 @@ def main():
 
     rates = Rates(NBP_API, spark)
     transform = CarsTransformation(spark)
-    analytics = CarsAnalytics(spark)
 
     raw_df = transform.load_data("data/raw/vehicles.csv")
     cleaned_df = transform.clean_data(raw_df)
@@ -23,8 +22,9 @@ def main():
     df_price_pln = transform.get_price_in_pln(cleaned_df, rates_df)
     transform.save_data_to_parquet(df_price_pln, "data/transform")
 
+    analytics = CarsAnalytics(spark)
     analytics.avg_manufacturer_price_by_year("bmw").show()
-    analytics.get_model_statistics("bmw", "Series 5").show()
+    analytics.get_model_statistics("bmw", "5 series").show()
 
 if __name__ == "__main__":
     main()
