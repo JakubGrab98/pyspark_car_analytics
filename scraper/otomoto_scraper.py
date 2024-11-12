@@ -53,14 +53,10 @@ class AdvertisementScraper:
             except Exception as e:
                 logger.error(e)
 
-    async def fetch_advertises_url(self):
+    async def fetch_advertises_url(self, batch: list[str]):
         """Fetches advertises url for each page in a loop."""
         urls = [self.base_url + str(p) for p in range(1, 8500)]
-        tasks = []
-        for url in urls:
-            task = asyncio.create_task(self.fetch_ad_url(url))
-            tasks.append(task)
-
+        tasks = [self.fetch_ad_url(url) for url in batch]
         await asyncio.gather(*tasks)
 
     async def fetch_ad_data(self, semaphore: asyncio.Semaphore, browser, ad_url: str) -> None:
@@ -111,7 +107,7 @@ class AdvertisementScraper:
             finally:
                 await page.close()
 
-    async def process_batch(self, playwright, batch, max_concurrent_tabs: int) -> None:
+    async def process_batch(self, playwright, batch: list[str], max_concurrent_tabs: int) -> None:
         """Processes fetchin car's data for batch of advertises urls"""
         browser = await playwright.chromium.launch(headless=False)
         semaphore = asyncio.Semaphore(max_concurrent_tabs)
@@ -123,17 +119,24 @@ class AdvertisementScraper:
 
     async def scraper(self):
         """Combines all necessary methods to perform data scraping process"""
-        await self.fetch_advertises_url()
         batch_size = 500
         concurrent_tabs = 10
+
+        urls = [self.base_url + str(p) for p in range(1, 8500)]
+        batches_urls = [urls[i:i + batch_size] for i in range(0, len(urls), batch_size)]
+        for index, batch in enumerate(batches_urls, start=1):
+            logger.info(f"Processing main page url batch {index}/{len(batches_urls)} with {len(batch)} URLs")
+            await self.fetch_advertises_url(batch)
+            logger.info(f"Finished processing batch {index}/{len(batches_urls)}")
+
         ad_urls = list(set(self.advertises_url))
-        batches = [ad_urls[i:i + batch_size] for i in range(0, len(ad_urls), batch_size)]
+        batches_scraping = [ad_urls[i:i + batch_size] for i in range(0, len(ad_urls), batch_size)]
 
         async with async_playwright() as playwright:
-            for index, batch in enumerate(batches, start=1):
-                logger.info(f"Processing batch {index}/{len(batches)} with {len(batch)} URLs")
+            for index, batch in enumerate(batches_scraping, start=1):
+                logger.info(f"Processing batch {index}/{len(batches_scraping)} with {len(batch)} URLs")
                 await self.process_batch(playwright, batch, concurrent_tabs)
-                logger.info(f"Finished processing batch {index}/{len(batches)}")
+                logger.info(f"Finished processing batch {index}/{len(batches_scraping)}")
 
     def save_data_to_csv(self, file_name:str = "data/raw/otomoto_data.csv"):
         """Saves scraped data to csv file.
