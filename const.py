@@ -1,0 +1,1 @@
+NBP_API = r"https://api.nbp.pl/api/exchangerates/tables"
