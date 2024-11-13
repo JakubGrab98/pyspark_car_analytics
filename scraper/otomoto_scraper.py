@@ -55,7 +55,6 @@ class AdvertisementScraper:
 
     async def fetch_advertises_url(self, batch: list[str]):
         """Fetches advertises url for each page in a loop."""
-        urls = [self.base_url + str(p) for p in range(1, 8500)]
         tasks = [self.fetch_ad_url(url) for url in batch]
         await asyncio.gather(*tasks)
 
