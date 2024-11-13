@@ -1,10 +1,22 @@
 from pyspark.sql import SparkSession
-from transform.transform import CarsTransformation
+from transform.transform import clean_data, get_price_in_pln, save_data_to_parquet
 from rates.nbp_rates import Rates
-from analytics.cars_analytics import CarsAnalytics
+from const import NBP_API
 
 
-NBP_API = r"https://api.nbp.pl/api/exchangerates/tables"
+def transformation(spark):
+    rates = Rates(NBP_API, spark)
+    rates_df = rates.get_rates("a")
+
+    raw_cars_df = (
+        spark.read
+        .option("header", "true")
+        .csv("data/raw/cars_data.csv")
+    )
+
+    cleaned_car_df = raw_cars_df.transform(clean_data)
+    updated_price_df = get_price_in_pln(cleaned_car_df, rates_df)
+    save_data_to_parquet(updated_price_df, ["year", "producer"], "data/transform")
 
 def main():
     spark = (SparkSession.builder
@@ -12,19 +24,8 @@ def main():
             .master("local")
             .getOrCreate()
     )
+    transformation(spark)
 
-    rates = Rates(NBP_API, spark)
-    transform = CarsTransformation(spark)
-
-    raw_df = transform.load_data("data/raw/vehicles.csv")
-    cleaned_df = transform.clean_data(raw_df)
-    rates_df = rates.get_rates("a")
-    df_price_pln = transform.get_price_in_pln(cleaned_df, rates_df)
-    transform.save_data_to_parquet(df_price_pln, "data/transform")
-
-    analytics = CarsAnalytics(spark)
-    analytics.avg_manufacturer_price_by_year("bmw").show()
-    analytics.get_model_statistics("bmw", "5 series").show()
 
 if __name__ == "__main__":
     main()
