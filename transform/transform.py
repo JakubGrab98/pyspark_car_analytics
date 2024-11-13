@@ -6,16 +6,7 @@ from pyspark.sql.types import *
 
 class CarsTransformation:
 
-    COLUMNS_LIST = [
-        "id", "url", "region", "region_url", "price", "price_currency",
-        "year", "manufacturer", "model", "condition",
-        "fuel", "odometer", "transmission", "VIN",
-        "drive", "size", "type", "paint_color",
-        "description", "state", "lat", "long", "posting_date",
-        "posting_year", "posting_month",
-    ]
-
-    PARTITION_COLUMNS = ["posting_year", "posting_month"]
+    PARTITION_COLUMNS = ["year", "producer"]
 
     def __init__(self, spark_session: SparkSession):
         self.spark_session = spark_session
