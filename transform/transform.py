@@ -12,8 +12,8 @@ def clean_data(df: DataFrame) -> DataFrame:
     """
     clean_df = (
         df
-        .withColumn("producer", substring_index((col("producer"), " ", 1)))
-        .withColumn("price", col("price").cast(FloatType()))
+        .withColumn("producer", substring_index(col("producer"), " ", 1))
+        .withColumn("price", regexp_replace(col("price"), r"[^0-9]", "").cast(LongType()))
         .withColumn("year", col("year").cast(IntegerType()))
         .withColumn("mileage_unit", substring_index(col("mileage"), " ", -1))
         .withColumn(
@@ -21,8 +21,6 @@ def clean_data(df: DataFrame) -> DataFrame:
         )
         .filter(
             (col("producer").isNotNull())
-            & (col("model").isNotNull())
-            & (col("price") > 0)
         )
         .fillna("N/A")
     )
@@ -30,20 +28,22 @@ def clean_data(df: DataFrame) -> DataFrame:
 
 def get_price_in_pln(cars_df: DataFrame, rates_df: DataFrame) -> DataFrame:
     """Assign PLN rate and create column with price in PLN.
-    Args: manufacturer (str): Name of the car's manufacturer.
+    Args:
         cars_df (DataFrame): DataFrame with cars data.
         rates_df (DataFrame): DataFrame with rates.
 
     Returns: DataFrame: Returns dataframe with additional column price in PLN.
     """
+    cars_columns = cars_df.columns
     df_with_rates = (
             cars_df.join(rates_df, [cars_df.price_currency == rates_df.code], "left_outer")
             .withColumn(
                 "price_PLN", when(
                     col("price_currency") != "PLN",
                     col("mid") * col("price")
-                    .otherwise(col("price_currency") * 1))
+                ).otherwise(col("price"))
             )
+        .select(*cars_columns, "price_PLN")
     )
     return df_with_rates
 
