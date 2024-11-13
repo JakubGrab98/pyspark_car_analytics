@@ -70,8 +70,12 @@ class CarsTransformation:
         """
         df_with_rates = (
                 cars_df.join(rates_df, [cars_df.price_currency == rates_df.code], "left_outer")
-                .withColumn("price_PLN", col("mid") * col("price"))
-                .select(*self.COLUMNS_LIST, "mid", "price_PLN")
+                .withColumn(
+                    "price_PLN", when(
+                        col("price_currency") != "PLN",
+                        col("mid") * col("price")
+                        .otherwise(col("price_currency") * 1))
+                )
         )
         return df_with_rates
 
