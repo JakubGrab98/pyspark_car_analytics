@@ -19,9 +19,6 @@ def clean_data(df: DataFrame) -> DataFrame:
         .withColumn(
             "mileage", regexp_replace(col("mileage"), r"[^0-9]", "").cast(LongType())
         )
-        .withColumn("posting_year", year(col("posting_date")))
-        .withColumn("posting_month", month(col("posting_date")))
-        .withColumn("price_currency", lit("USD"))
         .filter(
             (col("producer").isNotNull())
             & (col("model").isNotNull())
