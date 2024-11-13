@@ -41,21 +41,22 @@ class CarsTransformation:
         """
         clean_df = (
             df
-            .withColumn("price", col("price").cast(IntegerType()))
-            .withColumn("odometer", col("odometer").cast(LongType()))
-            .withColumn("lat", col("lat").cast(FloatType()))
-            .withColumn("long", col("long").cast(FloatType()))
-            .withColumn("posting_date", substring(col("posting_date"), 1, 10).cast(DateType()))
+            .withColumn("producer", substring_index((col("producer"), " ", 1)))
+            .withColumn("price", col("price").cast(FloatType()))
+            .withColumn("year", col("year").cast(IntegerType()))
+            .withColumn("mileage_unit", substring_index(col("mileage"), " ", -1))
+            .withColumn(
+                "mileage", regexp_replace(col("mileage"), r"[^0-9]", "").cast(LongType())
+            )
             .withColumn("posting_year", year(col("posting_date")))
             .withColumn("posting_month", month(col("posting_date")))
             .withColumn("price_currency", lit("USD"))
             .filter(
-                (col("model").isNotNull())
-                & (col("manufacturer").isNotNull())
+                (col("producer").isNotNull())
+                & (col("model").isNotNull())
                 & (col("price") > 0)
-                & (col("posting_date").rlike(r"^2\d{3}-\d{2}-\d{2}"))
             )
-            .select(self.COLUMNS_LIST)
+            .fillna("N/A")
         )
         return clean_df
 
