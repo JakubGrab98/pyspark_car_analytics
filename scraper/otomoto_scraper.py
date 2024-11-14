@@ -118,18 +118,19 @@ class AdvertisementScraper:
 
     async def scraper(self):
         """Combines all necessary methods to perform data scraping process"""
-        batch_size = 500
+        httpx_batch_size = 10
+        playwright_batch_size = 1000
         concurrent_tabs = 10
 
-        urls = [self.base_url + str(p) for p in range(1, 8500)]
-        batches_urls = [urls[i:i + batch_size] for i in range(0, len(urls), batch_size)]
+        urls = [self.base_url + str(p) for p in range(1, 8501)]
+        batches_urls = [urls[i:i + httpx_batch_size] for i in range(0, len(urls), httpx_batch_size)]
         for index, batch in enumerate(batches_urls, start=1):
             logger.info(f"Processing main page url batch {index}/{len(batches_urls)} with {len(batch)} URLs")
             await self.fetch_advertises_url(batch)
             logger.info(f"Finished processing batch {index}/{len(batches_urls)}")
 
         ad_urls = list(set(self.advertises_url))
-        batches_scraping = [ad_urls[i:i + batch_size] for i in range(0, len(ad_urls), batch_size)]
+        batches_scraping = [ad_urls[i:i + playwright_batch_size] for i in range(0, len(ad_urls), playwright_batch_size)]
 
         async with async_playwright() as playwright:
             for index, batch in enumerate(batches_scraping, start=1):
