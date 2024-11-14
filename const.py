@@ -1,1 +1,5 @@
 NBP_API = r"https://api.nbp.pl/api/exchangerates/tables"
+PRODUCER_COLUMN: str = "producer"
+MODEL_COLUMN: str = "model"
+YEAR_COLUMN: str = "year"
+PRICE_COLUMN: str = "price_PLN"
