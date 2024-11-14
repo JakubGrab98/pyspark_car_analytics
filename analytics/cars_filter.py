@@ -8,7 +8,6 @@ class CarsFilter:
     YEAR_COLUMN: str = "year"
     PRICE_COLUMN: str = "price_PLN"
 
-
     def __init__(
             self, producer: str, model: str, min_prod_year: int = 1900,
             max_prod_year: int = 2999, min_price: int = 0, max_price: int = 0
