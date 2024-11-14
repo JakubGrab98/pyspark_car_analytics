@@ -26,7 +26,7 @@ class CarsFilter:
 
     def filter_by_model(self, df: DataFrame)-> DataFrame:
         return df.filter(
-            (col(PRODUCER_COLUMN) == self.PRODUCER_COLUMN)
+            (col(PRODUCER_COLUMN) == self.producer)
             & (col(MODEL_COLUMN) == self.model)
         )
 
