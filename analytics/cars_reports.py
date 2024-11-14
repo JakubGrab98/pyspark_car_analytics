@@ -1,4 +1,4 @@
-from pyspark.sql.connect.dataframe import DataFrame
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import *
 from analytics.cars_filter import CarsFilter
 from const import (
@@ -33,7 +33,7 @@ class CarReport:
         statistics_df = (
             self.df.select(PRODUCER_COLUMN, MODEL_COLUMN, YEAR_COLUMN, PRICE_COLUMN)
             .transform(self.cars_filter.filter_by_model)
-            .groupby("manufacturer", "model")
+            .groupby(PRODUCER_COLUMN, MODEL_COLUMN)
             .agg(
                 max(YEAR_COLUMN).alias("max_prod_year"),
                 min(YEAR_COLUMN).alias("min_prod_year"),
