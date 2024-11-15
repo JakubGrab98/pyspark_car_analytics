@@ -56,9 +56,9 @@ class CarReport:
 
     def lowest_value_by_column(self, column_name: str) -> DataFrame:
         base_df = self.df.transform(self.cars_filter.filter_by_all_parameters)
-        lowest_value = base_df.select(column_name).min()
+        lowest_value = base_df.select(min(col(column_name))).collect()[0][0]
         lowest_value_df = (
-            base_df.filter(column_name == lowest_value)
+            base_df.filter(col(column_name) == lowest_value)
             .transform(self.cars_advertises_table)
         )
         return lowest_value_df
