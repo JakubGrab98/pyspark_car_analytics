@@ -43,3 +43,11 @@ class CarsFilter:
             (col(YEAR_COLUMN) <= self.min_prod_year)
         )
         return filtered_df
+
+    def filter_by_all_parameters(self, df: DataFrame) -> DataFrame:
+        filtered_df = (
+            df.transform(self.filter_by_model)
+            .transform(self.filter_by_price)
+            .transform(self.filter_by_year)
+        )
+        return filtered_df
