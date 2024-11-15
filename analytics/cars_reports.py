@@ -35,13 +35,16 @@ class CarReport:
                 col(PRODUCER_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(PRODUCER_COLUMN)),
                 col(MODEL_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MODEL_COLUMN)),
                 col(VERSION_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(VERSION_COLUMN)),
-                col(MILEAGE_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MILEAGE_COLUMN)),
-                col(MILEAGE_UNIT_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MILEAGE_UNIT_COLUMN)),
-                col(PRICE_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(PRICE_COLUMN)),
+                concat(
+                    col(MILEAGE_COLUMN),
+                    lit(" "),
+                    col(MILEAGE_UNIT_COLUMN),
+                ).alias(REPORT_COLUMNS_MAPPING.get(MILEAGE_COLUMN)),
+                concat(
+                    format_number(col(PRICE_COLUMN), 0),
+                    lit(" PLN"),
+                ).alias(REPORT_COLUMNS_MAPPING.get(PRICE_COLUMN)),
                 col(URL_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(URL_COLUMN)),
             ).transform(self.cars_filter.filter_by_all_parameters)
-            .withColumn(MILEAGE_COLUMN, col(MILEAGE_COLUMN) + lit(" ") + col(MILEAGE_UNIT_COLUMN))
-            .withColumn(PRICE_COLUMN, format_number(col(PRICE_COLUMN), 0) + lit(" PLN"))
-            .drop(MILEAGE_UNIT_COLUMN)
         )
         return advertises_df
