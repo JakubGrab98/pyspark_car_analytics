@@ -31,11 +31,11 @@ class CarsFilter:
         )
 
     def filter_by_price(self, df: DataFrame) -> DataFrame:
-        filtered_df = df.filter(
-            (col(PRICE_COLUMN) >= self.min_price) &
-            (self.max_price <= 0 | (col(PRICE_COLUMN) <= self.max_price))
-        )
-        return filtered_df
+        filtered_min_price = df.filter(col(PRICE_COLUMN) >= self.min_price)
+        if self.max_price > 0 and self.max_price > self.min_price:
+            filtered_max_price = filtered_min_price.filter(col(PRICE_COLUMN) <= self.min_price)
+            return filtered_max_price
+        return filtered_min_price
 
     def filter_by_year(self, df: DataFrame) -> DataFrame:
         filtered_df = df.filter(
