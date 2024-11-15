@@ -1,4 +1,4 @@
-from h11 import PRODUCT_ID
+"""Module responsible for gathering reporting methods."""
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import *
 from analytics.cars_filter import CarsFilter
@@ -7,15 +7,22 @@ from const import *
 
 class CarReport:
     def __init__(self, df: DataFrame, cars_filter: CarsFilter):
+        """
+        Initializes CarReport class.
+        :param df: Car's dataframe.
+        :param cars_filter: Instance of CarsFilter for filtering purposes.
+        """
         self.df = df
         self.cars_filter = cars_filter
 
     def get_number_of_producer_advertises(self) -> int:
+        """Retrieves number of producer's advertisement."""
         base_df = self.df.select(PRODUCER_COLUMN)
         result = self.cars_filter.filter_by_all_parameters(base_df).count()
         return result
 
     def get_model_statistics(self) -> DataFrame:
+        """Retrieves car's model statistics"""
         statistics_df = (
             self.df.select(PRODUCER_COLUMN, MODEL_COLUMN, YEAR_COLUMN, PRICE_COLUMN)
             .transform(self.cars_filter.filter_by_all_parameters)
@@ -31,6 +38,9 @@ class CarReport:
         return statistics_df
 
     def get_advertises(self) -> DataFrame:
+        """
+        Creates dataframe with details from advertisement for provided parameters.
+        """
         advertises_df = (
             self.df
             .transform(self.cars_advertises_table)
@@ -39,9 +49,9 @@ class CarReport:
         return advertises_df
 
     def compare_other_producers(self) -> DataFrame:
+        """Creates comparison of producers prices based on year and price filter"""
         comparison_df = (
             self.df.select(PRODUCER_COLUMN, PRICE_COLUMN)
-            .transform(self.cars_filter.filter_by_producer)
             .transform(self.cars_filter.filter_by_year)
             .transform(self.cars_filter.filter_by_price)
             .groupby(PRODUCER_COLUMN)
@@ -55,6 +65,11 @@ class CarReport:
         return comparison_df
 
     def lowest_value_by_column(self, column_name: str) -> DataFrame:
+        """
+        Finds the record with specific column the lowest value.
+        :param column_name: Name of the column which will be analyzed.
+        :return: DataFrame with car's advertisement details.
+        """
         base_df = self.df.transform(self.cars_filter.filter_by_all_parameters)
         lowest_value = base_df.select(min(col(column_name))).collect()[0][0]
         lowest_value_df = (
@@ -65,6 +80,11 @@ class CarReport:
 
     @staticmethod
     def cars_advertises_table(df: DataFrame) -> DataFrame:
+        """
+        Initial transformation of cars advertisement DataFrame.
+        :param df: Car's DataFrame.
+        :return: Transformed DataFrame with proper columns.
+        """
         cars_df = df.select(
             col(PRODUCER_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(PRODUCER_COLUMN)),
             col(MODEL_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MODEL_COLUMN)),
