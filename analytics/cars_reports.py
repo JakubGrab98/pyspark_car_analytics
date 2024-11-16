@@ -61,6 +61,7 @@ class CarReport:
                 min(PRICE_COLUMN).alias("min_price"),
                 count(PRICE_COLUMN).alias("advertises_amount")
             )
+            .orderBy(col("avg_price").desc())
         )
         return comparison_df
 
