@@ -24,15 +24,20 @@ class CarReport:
     def get_model_statistics(self) -> DataFrame:
         """Retrieves car's model statistics"""
         statistics_df = (
-            self.df.select(PRODUCER_COLUMN, MODEL_COLUMN, YEAR_COLUMN, PRICE_COLUMN)
+            self.df.select(
+                col(PRODUCER_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(PRODUCER_COLUMN)),
+                col(MODEL_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MODEL_COLUMN)),
+                col(YEAR_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(YEAR_COLUMN)),
+                PRICE_COLUMN,
+            )
             .transform(self.cars_filter.filter_by_all_parameters)
             .groupby(PRODUCER_COLUMN, MODEL_COLUMN)
             .agg(
-                max(YEAR_COLUMN).alias("max_prod_year"),
-                min(YEAR_COLUMN).alias("min_prod_year"),
-                avg(PRICE_COLUMN).alias("avg_price"),
-                max(PRICE_COLUMN).alias("max_price"),
-                min(PRICE_COLUMN).alias("min_price"),
+                max(YEAR_COLUMN).alias("Max Year"),
+                min(YEAR_COLUMN).alias("Min Year"),
+                avg(PRICE_COLUMN).alias("Avg Price"),
+                max(PRICE_COLUMN).alias("Max Price"),
+                min(PRICE_COLUMN).alias("Min Price"),
             )
         )
         return statistics_df
@@ -90,6 +95,7 @@ class CarReport:
             col(PRODUCER_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(PRODUCER_COLUMN)),
             col(MODEL_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(MODEL_COLUMN)),
             col(VERSION_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(VERSION_COLUMN)),
+            col(YEAR_COLUMN).alias(REPORT_COLUMNS_MAPPING.get(YEAR_COLUMN)),
             concat(
                 col(MILEAGE_COLUMN),
                 lit(" "),
