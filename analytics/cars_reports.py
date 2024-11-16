@@ -67,6 +67,24 @@ class CarReport:
         )
         return comparison_df
 
+    def compare_other_models(self) -> DataFrame:
+        """Creates comparison of producers prices based on year and price filter"""
+        comparison_df = (
+            self.df.select(MODEL_COLUMN, PRICE_COLUMN)
+            .transform(self.cars_filter.filter_by_year)
+            .transform(self.cars_filter.filter_by_producer)
+            .transform(self.cars_filter.filter_by_price)
+            .groupby(MODEL_COLUMN)
+            .agg(
+                avg(PRICE_COLUMN).alias("avg_price"),
+                max(PRICE_COLUMN).alias("max_price"),
+                min(PRICE_COLUMN).alias("min_price"),
+                count(PRICE_COLUMN).alias("advertises_amount")
+            )
+            .orderBy(col("avg_price").desc())
+        )
+        return comparison_df
+
     def lowest_value_by_column(self, column_name: str) -> DataFrame:
         """
         Finds the record with specific column the lowest value.
