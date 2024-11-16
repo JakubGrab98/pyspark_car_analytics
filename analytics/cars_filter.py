@@ -40,7 +40,7 @@ class CarsFilter:
     def filter_by_year(self, df: DataFrame) -> DataFrame:
         filtered_df = df.filter(
             (col(YEAR_COLUMN) >= self.min_prod_year) &
-            (col(YEAR_COLUMN) <= self.min_prod_year)
+            (col(YEAR_COLUMN) <= self.max_prod_year)
         )
         return filtered_df
 
