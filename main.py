@@ -5,7 +5,7 @@ from transform.transform import clean_data, get_price_in_pln, save_data_to_parqu
 from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
 from rates.nbp_rates import Rates
-from const import NBP_API, PRODUCER_COLUMN
+from const import NBP_API, PRODUCER_COLUMN, MODEL_COLUMN, PRICE_COLUMN, MILEAGE_COLUMN
 
 
 def transformation(spark):
@@ -43,7 +43,6 @@ def main():
 
 
 if __name__ == "__main__":
-    base_df = main().cache()
     st.title("Cars Advertisement Analysis")
 
     with st.sidebar:
@@ -56,16 +55,29 @@ if __name__ == "__main__":
 
 
     if st.button("Start Analysis"):
+        if st.button("Restart"):
+            st.empty()
         if producer and model:
+            base_df = main().cache()
             with st.spinner("Analyzing data..."):
                 car_filter = CarsFilter(producer, model, min_year, max_year, min_price, max_price)
                 car_reports = CarReport(base_df, car_filter)
                 st.markdown("## Car Analysis")
-                st.markdown("# Model's statistics")
+                st.markdown("### Model's statistics")
                 st.table(car_reports.get_model_statistics())
-                st.markdown("# All Advertises")
-                st.table(car_reports.get_advertises())
-                st.markdown("# Average Price By Producer")
+                st.markdown("### Model With The Lowest Price")
+                st.table(car_reports.lowest_value_by_column(PRICE_COLUMN))
+                st.markdown("### Model With The Lowest Mileage")
+                st.table(car_reports.lowest_value_by_column(MILEAGE_COLUMN))
+                st.markdown("### Average Price By Other Models")
+                st.bar_chart(
+                    car_reports.compare_other_models(),
+                    x=MODEL_COLUMN,
+                    y="avg_price",
+                    x_label="Model",
+                    y_label="Average Price",
+                )
+                st.markdown("### Average Price By Other Producers")
                 st.bar_chart(
                     car_reports.compare_other_producers(),
                     x=PRODUCER_COLUMN,
@@ -73,5 +85,7 @@ if __name__ == "__main__":
                     x_label="Producer",
                     y_label="Average Price",
                 )
+                st.markdown("### All Advertises")
+                st.table(car_reports.get_advertises().toPandas())
         else:
             st.error("Please fill in all fields.")
