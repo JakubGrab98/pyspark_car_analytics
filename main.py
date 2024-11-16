@@ -5,7 +5,7 @@ from transform.transform import clean_data, get_price_in_pln, save_data_to_parqu
 from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
 from rates.nbp_rates import Rates
-from const import NBP_API
+from const import NBP_API, PRODUCER_COLUMN
 
 
 def transformation(spark):
@@ -38,7 +38,6 @@ def main():
             .master("local")
             .getOrCreate()
     )
-    transformation(spark)
     transformed_df = spark.read.parquet("data/transform")
     return transformed_df
 
@@ -62,8 +61,17 @@ if __name__ == "__main__":
                 car_filter = CarsFilter(producer, model, min_year, max_year, min_price, max_price)
                 car_reports = CarReport(base_df, car_filter)
                 st.markdown("## Car Analysis")
+                st.markdown("# Model's statistics")
                 st.table(car_reports.get_model_statistics())
+                st.markdown("# All Advertises")
                 st.table(car_reports.get_advertises())
-                st.table(car_reports.compare_other_producers())
+                st.markdown("# Average Price By Producer")
+                st.bar_chart(
+                    car_reports.compare_other_producers(),
+                    x=PRODUCER_COLUMN,
+                    y="avg_price",
+                    x_label="Producer",
+                    y_label="Average Price",
+                )
         else:
             st.error("Please fill in all fields.")
