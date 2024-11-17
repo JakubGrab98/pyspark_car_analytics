@@ -1,11 +1,16 @@
 import streamlit as st
-from pygments.lexer import default
 from pyspark.sql import SparkSession
 from transform.transform import clean_data, get_price_in_pln, save_data_to_parquet
 from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
 from rates.nbp_rates import Rates
-from const import NBP_API, PRODUCER_COLUMN, MODEL_COLUMN, PRICE_COLUMN, MILEAGE_COLUMN
+from const import (
+    NBP_API,
+    PRODUCER_COLUMN,
+    MODEL_COLUMN,
+    PRICE_COLUMN,
+    MILEAGE_COLUMN,
+)
 
 
 def transformation(spark):
@@ -52,11 +57,11 @@ if __name__ == "__main__":
         max_year = st.number_input("Maximum production year:", value = 2999, min_value=1900, max_value=2999)
         min_price = st.number_input("Minimum price:", value=0, min_value=0)
         max_price = st.number_input("Maximum price:", value=0, min_value=0)
+        if st.button("Restart"):
+            st.empty()
 
 
     if st.button("Start Analysis"):
-        if st.button("Restart"):
-            st.empty()
         if producer and model:
             base_df = main().cache()
             with st.spinner("Analyzing data..."):
@@ -75,14 +80,6 @@ if __name__ == "__main__":
                     x=MODEL_COLUMN,
                     y="avg_price",
                     x_label="Model",
-                    y_label="Average Price",
-                )
-                st.markdown("### Average Price By Other Producers")
-                st.bar_chart(
-                    car_reports.compare_other_producers(),
-                    x=PRODUCER_COLUMN,
-                    y="avg_price",
-                    x_label="Producer",
                     y_label="Average Price",
                 )
                 st.markdown("### All Advertises")

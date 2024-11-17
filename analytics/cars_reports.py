@@ -32,9 +32,10 @@ class CarReport:
             .agg(
                 max(YEAR_COLUMN).alias("Max Year"),
                 min(YEAR_COLUMN).alias("Min Year"),
-                avg(PRICE_COLUMN).alias("Avg Price"),
-                max(PRICE_COLUMN).alias("Max Price"),
-                min(PRICE_COLUMN).alias("Min Price"),
+                format_number(avg(PRICE_COLUMN), 0).alias("Avg Price"),
+                format_number(max(PRICE_COLUMN), 0).alias("Max Price"),
+                format_number(min(PRICE_COLUMN), 0).alias("Min Price"),
+                format_number(count(PRICE_COLUMN), 0).alias("Advertisements Amount")
             )
         )
         return statistics_df
@@ -58,12 +59,12 @@ class CarReport:
             .transform(self.cars_filter.filter_by_price)
             .groupby(PRODUCER_COLUMN)
             .agg(
-                avg(PRICE_COLUMN).alias("avg_price"),
-                max(PRICE_COLUMN).alias("max_price"),
-                min(PRICE_COLUMN).alias("min_price"),
-                count(PRICE_COLUMN).alias("advertises_amount")
+                format_number(avg(PRICE_COLUMN), 0).alias("avg_price"),
+                format_number(max(PRICE_COLUMN), 0).alias("max_price"),
+                format_number(min(PRICE_COLUMN), 0).alias("min_price"),
+                format_number(count(PRICE_COLUMN), 0).alias("advertises_amount")
             )
-            .orderBy(col("avg_price").desc())
+            # .orderBy(col("avg_price").desc())
         )
         return comparison_df
 
@@ -81,7 +82,6 @@ class CarReport:
                 min(PRICE_COLUMN).alias("min_price"),
                 count(PRICE_COLUMN).alias("advertises_amount")
             )
-            .orderBy(col("avg_price").desc())
         )
         return comparison_df
 
