@@ -5,49 +5,24 @@ from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
 from rates.nbp_rates import Rates
 from const import (
-    NBP_API,
-    PRODUCER_COLUMN,
     MODEL_COLUMN,
     PRICE_COLUMN,
     MILEAGE_COLUMN,
 )
 
 
-def transformation(spark):
-    rates = Rates(NBP_API, spark)
-    rates_df = rates.get_rates("a")
-
-    raw_cars_df = (
-        spark.read
-        .option("header", "true")
-        .csv("data/raw/otomoto_data.csv")
-    )
-
-    cleaned_car_df = raw_cars_df.transform(clean_data)
-    updated_price_df = get_price_in_pln(cleaned_car_df, rates_df)
-    updated_price_df.show()
-    updated_price_df.printSchema()
-    save_data_to_parquet(updated_price_df, ["year", "producer"], "data/transform")
-
-def reporting(spark: SparkSession):
-    cleaned_df = spark.read.parquet("data/transform")
-    car_filter = CarsFilter("Audi", "A4")
-    car_reports = CarReport(cleaned_df, car_filter)
-    car_reports.get_model_statistics().show()
-    print(car_reports.get_number_of_producer_advertises())
-
-
-def main():
-    spark = (SparkSession.builder
-            .appName("cars_analytics")
-            .master("local")
-            .getOrCreate()
-    )
-    transformed_df = spark.read.parquet("data/transform")
+def read_data(spark: SparkSession, source_path: str="data/transform"):
+    transformed_df = spark.read.parquet(source_path)
     return transformed_df
 
 
 if __name__ == "__main__":
+    spark_session = (SparkSession.builder
+            .appName("cars_analytics")
+            .master("local")
+            .getOrCreate()
+    )
+
     st.title("Cars Advertisement Analysis")
 
     with st.sidebar:
@@ -60,10 +35,9 @@ if __name__ == "__main__":
         if st.button("Restart"):
             st.empty()
 
-
     if st.button("Start Analysis"):
         if producer and model:
-            base_df = main().cache()
+            base_df = read_data(spark_session).cache()
             with st.spinner("Analyzing data..."):
                 car_filter = CarsFilter(producer, model, min_year, max_year, min_price, max_price)
                 car_reports = CarReport(base_df, car_filter)
