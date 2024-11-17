@@ -1,9 +1,7 @@
 import streamlit as st
 from pyspark.sql import SparkSession
-from transform.transform import clean_data, get_price_in_pln, save_data_to_parquet
 from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
-from rates.nbp_rates import Rates
 from const import (
     MODEL_COLUMN,
     PRICE_COLUMN,
