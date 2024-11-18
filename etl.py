@@ -1,3 +1,4 @@
+"""Module combines ETL process."""
 import asyncio
 from pyspark.sql import SparkSession
 from transform.transform import clean_data, get_price_in_pln, save_data_to_parquet
@@ -8,6 +9,10 @@ from logging_configs.log_setup import setup_logging
 
 
 def transformation(spark: SparkSession):
+    """
+    Gathering transformation method for ETL.
+    :param spark: SparkSession
+    """
     rates = Rates(NBP_API, spark)
     rates_df = rates.get_rates("a")
 
