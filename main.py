@@ -10,8 +10,14 @@ from const import (
 
 
 def read_data(spark: SparkSession, source_path: str="data/transform"):
-    transformed_df = spark.read.parquet(source_path)
-    return transformed_df
+    """
+    Reads data from parquet files.
+    :param spark: SparkSession
+    :param source_path: Path to source folder.
+    :return: DataFrame
+    """
+    df = spark.read.parquet(source_path)
+    return df
 
 
 if __name__ == "__main__":
