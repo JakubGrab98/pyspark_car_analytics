@@ -163,3 +163,4 @@ cython_debug/
 data/
 main.py
 test.py
+.env
