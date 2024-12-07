@@ -1,5 +1,4 @@
 """Module responsible for filtering DataFrame for reporting purposes."""
-from pyspark.sql import DataFrame
 from pyspark.sql.functions import *
 from const import (
     PRODUCER_COLUMN,

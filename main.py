@@ -1,35 +1,6 @@
-import os
-
-import streamlit as st
-from minio import Minio
 from pyspark.sql import SparkSession
-from dotenv import load_dotenv
 from analytics.cars_filter import CarsFilter
 from analytics.cars_reports import CarReport
-from const import (
-    MODEL_COLUMN,
-    PRICE_COLUMN,
-    MILEAGE_COLUMN,
-)
-
-load_dotenv()
-
-def minio_upload_data(bucket_name, file_path):
-    minio_client = Minio(
-        os.getenv("NODE_IP"),  # Replace with any node's IP and port
-        access_key=os.getenv("MINIO_ROOT_USER"),
-        secret_key=os.getenv("MINIO_ROOT_PASSWORD"),
-        secure=False
-    )
-    found = minio_client.bucket_exists(bucket_name)
-    if not found:
-        minio_client.make_bucket(bucket_name)
-        print("Created bucket", bucket_name)
-    else:
-        print("Bucket", bucket_name, "already exists")
-
-    minio_client.fput_object(bucket_name, file_path, file_path)
-    print(f"Uploaded {file_path} to MinIO bucket {bucket_name}")
 
 
 def read_data(spark: SparkSession, source_path: str="data/transform"):
@@ -44,13 +15,22 @@ def read_data(spark: SparkSession, source_path: str="data/transform"):
 
 
 if __name__ == "__main__":
-    minio_upload_data("otomoto-scraper", "data/raw/otomoto_data.csv")
-    # spark_session = (SparkSession.builder
-    #         .appName("cars_analytics")
-    #         .master("local")
-    #         .getOrCreate()
-    # )
-    #
+    # minio_upload_data("otomoto-scraper", "data/raw/otomoto_data.csv")
+
+
+    spark_session = (SparkSession.builder
+            .appName("cars_analytics")
+            # .master("spark://localhost:7077")
+            # .config("spark.executor.memory", "1g")
+            # .config("spark.executor.cores", "1")
+            # .config("spark.driver.memory", "2g")
+            .getOrCreate()
+    )
+
+    base_df = read_data(spark_session, "/opt/spark/data/transform").cache()
+    car_filter = CarsFilter("Audi", "A4")
+    car_reports = CarReport(base_df, car_filter)
+    car_reports.get_model_statistics().show()
     # st.title("Cars Advertisement Analysis")
     #
     # with st.sidebar:

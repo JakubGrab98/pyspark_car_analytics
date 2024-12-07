@@ -1,5 +1,4 @@
 """Module responsible for gathering reporting methods."""
-from pyspark.sql import DataFrame
 from pyspark.sql.functions import *
 from analytics.cars_filter import CarsFilter
 from const import *
