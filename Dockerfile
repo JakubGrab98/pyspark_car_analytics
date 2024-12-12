@@ -1,48 +1,38 @@
-FROM python:3.11-bullseye as spark-base 
+FROM ubuntu:latest
 
-ARG SPARK_VERSION=3.5.3
+RUN apt-get update && apt-get install -y \
+    openjdk-11-jdk curl wget tar iputils-ping
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      sudo \
-      curl \
-      vim \
-      unzip \
-      rsync \
-      openjdk-11-jdk \
-      build-essential \
-      software-properties-common \
-      ssh && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
+ENV SPARK_VERSION=3.5.3
+ENV HADOOP_VERSION=3
 
-ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
-ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
+RUN wget https://dlcdn.apache.org/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz \
+    && tar -xzf spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz -C /opt \
+    && rm spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz \
+    && ln -s /opt/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION /opt/spark
 
-RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
-WORKDIR ${SPARK_HOME}
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH
 
-RUN curl https://dlcdn.apache.org/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz -o spark-3.5.3-bin-hadoop3.tgz \
- && tar xvzf spark-3.5.3-bin-hadoop3.tgz --directory /opt/spark --strip-components 1 \
- && rm -rf spark-3.5.3-bin-hadoop3.tgz
+RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -P $SPARK_HOME/jars/ \
+    && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.779/aws-java-sdk-bundle-1.12.779.jar -P $SPARK_HOME/jars/ \
 
-COPY requirements/requirements.txt .
-RUN pip3 install -r requirements.txt
+ENV MINIO_VERSION=latest
+RUN wget https://dl.min.io/server/minio/release/linux-amd64/minio \
+    && chmod +x minio \
+    && mv minio /usr/local/bin/
 
-ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
-ENV SPARK_HOME="/opt/spark"
-ENV SPARK_MASTER="spark://spark-master:7077"
-ENV SPARK_MASTER_HOST spark-master
-ENV SPARK_MASTER_PORT 7077
-ENV PYSPARK_PYTHON python3
+RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc \
+    && chmod +x mc \
+    && mv mc /usr/local/bin/
 
-COPY conf/spark-defaults.conf "$SPARK_HOME/conf"
+ENV MINIO_ROOT_USER=${MINIO_ROOT_USER}
+ENV MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+ENV MINIO_DATA_DIR=/data
 
-RUN chmod u+x /opt/spark/sbin/* && \
-    chmod u+x /opt/spark/bin/*
+COPY spark-minio-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/spark-minio-entrypoint.sh
 
-ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
-
-COPY entrypoint.sh .
-
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["spark-minio-entrypoint.sh"]
