@@ -16,8 +16,8 @@ RUN wget https://dlcdn.apache.org/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSIO
 ENV SPARK_HOME=/opt/spark
 ENV PATH=$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH
 
-RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -P $SPARK_HOME/jars/ \
-    && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.779/aws-java-sdk-bundle-1.12.779.jar -P $SPARK_HOME/jars/ \
+COPY dependencies/hadoop-aws-3.3.4.jar "$SPARK_HOME/jars"
+COPY dependencies/aws-java-sdk-bundle-1.12.771.jar "$SPARK_HOME/jars"
 
 ENV MINIO_VERSION=latest
 RUN wget https://dl.min.io/server/minio/release/linux-amd64/minio \

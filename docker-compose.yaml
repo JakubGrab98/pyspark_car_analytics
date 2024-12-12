@@ -10,6 +10,8 @@ services:
       - SPARK_MODE=master
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./:/opt/spark/apps
     command: ["bash", "-c", "mkdir -p /data && /usr/local/bin/spark-minio-entrypoint.sh"]
     networks:
       spark-net:
@@ -28,6 +30,8 @@ services:
       - SPARK_MASTER_URL=spark://192.168.1.100:7077
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./:/opt/spark/apps
     command: ["bash", "-c", "mkdir -p /data && /usr/local/bin/spark-minio-entrypoint.sh"]
     networks:
       spark-net:
